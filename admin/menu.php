@@ -39,6 +39,7 @@ function hb_admin_page(){
             <a href="?page=hb_bookings&tab=add_booking" class="nav-tab <?php echo $active_tab=='add_booking'?'nav-tab-active':''; ?>">Add Booking</a>
             <a href="?page=hb_bookings&tab=all_bookings" class="nav-tab <?php echo $active_tab=='all_bookings'?'nav-tab-active':''; ?>">All Bookings</a>
             <a href="?page=hb_bookings&tab=reports" class="nav-tab <?php echo $active_tab=='reports'?'nav-tab-active':''; ?>">Reports</a>
+            <a href="?page=hb_bookings&tab=expenses" class="nav-tab <?php echo $active_tab=='expenses'?'nav-tab-active':''; ?>">Expenses</a>
             <a href="?page=hb_bookings&tab=settings" class="nav-tab <?php echo $active_tab=='settings'?'nav-tab-active':''; ?>">Settings</a>
         </h2>
         <?php
@@ -47,7 +48,9 @@ function hb_admin_page(){
         } elseif($active_tab=='all_bookings') {
             hb_all_bookings_tab();
         } elseif($active_tab=='reports') {
-            hb_reports_tab(); // This now handles sub-tabs for Revenue & Customers
+            hb_reports_tab();
+        } elseif($active_tab=='expenses') {
+            include_once __DIR__ . '/expense.php'; // Load expense page
         } elseif($active_tab=='settings') {
             hb_settings_tab();
         }
