@@ -1,0 +1,115 @@
+/* Overview Tab */
+.ahbn-overview-title {
+    font-size: 28px;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.ahbn-overview-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.ahbn-overview-card {
+    flex: 1 1 200px;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 25px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ahbn-overview-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.ahbn-card-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.ahbn-overview-card h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.ahbn-overview-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0073aa;
+    margin: 0;
+}
+
+@media(max-width: 768px) {
+    .ahbn-overview-cards {
+        flex-direction: column;
+    }
+}
+.ahbn-settings-columns {
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+}
+.ahbn-settings-column {
+    flex:1;
+    min-width:300px;
+}
+.ahbn-repeater-wrapper {
+    margin-bottom:15px;
+}
+.ahbn-repeater-row {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:6px;
+}
+.ahbn-repeater-row input,
+.ahbn-repeater-row select {
+    padding:4px 6px;
+}
+.icon-preview {
+    font-size:20px;
+}
+@media(max-width:800px){
+    .ahbn-settings-columns { flex-direction:column; }
+}
+
+
+.ahbn-tabs {
+                display: flex;
+                flex-wrap: wrap;
+                border-bottom: 2px solid #ccc;
+                margin-bottom: 20px;
+            }
+            .ahbn-tab {
+                padding: 10px 20px;
+                margin-right: 5px;
+                text-decoration: none;
+                border: 1px solid #ccc;
+                border-bottom: none;
+                border-radius: 5px 5px 0 0;
+                background: #f1f1f1;
+                color: #333;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            .ahbn-tab:hover {
+                background: #eaeaea;
+                color: #000;
+            }
+            .ahbn-tab-active {
+                background: #fff;
+                border-bottom: 2px solid #fff;
+                color: #0073aa;
+            }
+            .ahbn-content {
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 0 5px 5px 5px;
+                background: #fff;
+            }
