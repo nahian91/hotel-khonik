@@ -19,7 +19,7 @@ function ahbn_admin_menu() {
     // Top-level menu only
     add_menu_page(
         __('Hotel Booking', 'awesome-hotel-booking'), // Page title
-        __('Booking', 'awesome-hotel-booking'),       // Menu title
+        __('Hotel Booking', 'awesome-hotel-booking'),       // Menu title
         $capability,                                 // Capability
         'ahbn_booking_main',                          // Menu slug
         'ahbn_admin_page',                            // Callback function

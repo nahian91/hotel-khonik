@@ -41,6 +41,11 @@ function ahbn_shortcodes_tab() { ?>
                     <td>Displays a My Account button. Shows user name if logged in, otherwise Login/Register links.</td>
                     <td><button class="button button-secondary ahbn-copy-btn" data-shortcode="[ahbn_account_button]">Copy</button></td>
                 </tr>
+                <tr>
+                    <td><code>[ahbn_thanks_page]</code></td>
+                    <td>Displays a Thank You page after booking.</td>
+                    <td><button class="button button-secondary ahbn-copy-btn" data-shortcode="[ahbn_thanks_page]">Copy</button></td>
+                </tr>
             </tbody>
         </table>
 
@@ -66,6 +71,7 @@ require plugin_dir_path(__FILE__) . 'inc/room-search.php';
 require plugin_dir_path(__FILE__) . 'inc/room-list.php';
 require plugin_dir_path(__FILE__) . 'inc/room-single.php'; 
 require plugin_dir_path(__FILE__) . 'inc/account.php'; 
+require plugin_dir_path(__FILE__) . 'inc/thanks-page.php';
 
 // ==========================================
 // Shortcode: [ahbn_account_button]

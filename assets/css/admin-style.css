@@ -1,4 +1,4 @@
-/* Overview Tab */
+/* Overview Tab
 .ahbn-overview-title {
     font-size: 28px;
     margin-bottom: 25px;
@@ -77,39 +77,41 @@
 }
 @media(max-width:800px){
     .ahbn-settings-columns { flex-direction:column; }
+} */
+
+.wrap.ahbn-admin-wrap .ahbn-admin-title {
+  font-size: 26px;
+  font-weight: 600;
+  margin-bottom: 20px;
 }
-
-
 .ahbn-tabs {
-                display: flex;
-                flex-wrap: wrap;
-                border-bottom: 2px solid #ccc;
-                margin-bottom: 20px;
-            }
-            .ahbn-tab {
-                padding: 10px 20px;
-                margin-right: 5px;
-                text-decoration: none;
-                border: 1px solid #ccc;
-                border-bottom: none;
-                border-radius: 5px 5px 0 0;
-                background: #f1f1f1;
-                color: #333;
-                font-weight: 500;
-                transition: all 0.2s ease;
-            }
-            .ahbn-tab:hover {
-                background: #eaeaea;
-                color: #000;
-            }
-            .ahbn-tab-active {
-                background: #fff;
-                border-bottom: 2px solid #fff;
-                color: #0073aa;
-            }
-            .ahbn-content {
-                padding: 20px;
-                border: 1px solid #ccc;
-                border-radius: 0 5px 5px 5px;
-                background: #fff;
-            }
+  display: flex;
+  background-color: #fff;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+}
+.ahbn-tabs a.ahbn-tab {
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+  display: block;
+  padding: 15px 20px;
+  border-right: 1px solid #ddd;
+}
+.ahbn-tabs .ahbn-tab.ahbn-tab-active {
+  background-color: #2271b1;
+  color: #fff;
+}
+.ahbn-content .nav-tab-wrapper a {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  margin-left: 0;
+  padding: 10px 30px;
+  display: block;
+}
+.ahbn-content .nav-tab-wrapper a.nav-tab.nav-tab-active {
+  background-color: #2271b1;
+  color: #fff;
+}

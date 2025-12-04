@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) exit;
 
 // Fetch all bookings
-$bookings = get_posts([
+$ahbn_bookings = get_posts([
     'post_type'   => 'ahbn_booking',
     'numberposts' => -1,
     'post_status' => 'publish',
@@ -10,11 +10,11 @@ $bookings = get_posts([
     'order'       => 'DESC'
 ]);
 
-$currency = get_option('ahbn_hotel_currency', '$');
+$ahbn_currency = get_option('ahbn_hotel_currency', '$');
 
 echo '<div class="wrap">';
 echo '<h2>All Customers</h2>';
-echo '<h3>Total Customers: ' . count($bookings) . '</h3>';
+echo '<h3>Total Customers: ' . count($ahbn_bookings) . '</h3>';
 
 echo '<table class="widefat striped">
         <thead>
@@ -34,31 +34,31 @@ echo '<table class="widefat striped">
         </thead>
         <tbody>';
 
-if (!empty($bookings)) {
-    foreach ($bookings as $b) {
-        $phone     = get_post_meta($b->ID, 'ahbn_customer_phone', true) ?: '-';
-        $email     = get_post_meta($b->ID, 'ahbn_customer_email', true) ?: '-';
-        $address   = get_post_meta($b->ID, 'ahbn_customer_address', true) ?: '-';
-        $room_id   = get_post_meta($b->ID, 'ahbn_room_id', true);
-        $room_name = $room_id ? get_the_title($room_id) : '-';
-        $checkin   = get_post_meta($b->ID, 'ahbn_check_in', true) ?: '-';
-        $checkout  = get_post_meta($b->ID, 'ahbn_check_out', true) ?: '-';
-        $nights    = intval(get_post_meta($b->ID, 'ahbn_days', true));
-        $amount    = floatval(get_post_meta($b->ID, 'ahbn_amount', true));
-        $status    = get_post_meta($b->ID, 'ahbn_status', true) ?: 'pending';
+if (!empty($ahbn_bookings)) {
+    foreach ($ahbn_bookings as $ahbn_b) {
+        $ahbn_phone     = get_post_meta($ahbn_b->ID, 'ahbn_customer_phone', true) ?: '-';
+        $ahbn_email     = get_post_meta($ahbn_b->ID, 'ahbn_customer_email', true) ?: '-';
+        $ahbn_address   = get_post_meta($ahbn_b->ID, 'ahbn_customer_address', true) ?: '-';
+        $ahbn_room_id   = get_post_meta($ahbn_b->ID, 'ahbn_room_id', true);
+        $ahbn_room_name = $ahbn_room_id ? get_the_title($ahbn_room_id) : '-';
+        $ahbn_checkin   = get_post_meta($ahbn_b->ID, 'ahbn_check_in', true) ?: '-';
+        $ahbn_checkout  = get_post_meta($ahbn_b->ID, 'ahbn_check_out', true) ?: '-';
+        $ahbn_nights    = intval(get_post_meta($ahbn_b->ID, 'ahbn_days', true));
+        $ahbn_amount    = floatval(get_post_meta($ahbn_b->ID, 'ahbn_amount', true));
+        $ahbn_status    = get_post_meta($ahbn_b->ID, 'ahbn_status', true) ?: 'pending';
 
         echo '<tr>
-                <td>' . esc_html($b->ID) . '</td>
-                <td>' . esc_html($b->post_title) . '</td>
-                <td>' . esc_html($phone) . '</td>
-                <td>' . esc_html($email) . '</td>
-                <td>' . esc_html($address) . '</td>
-                <td>' . esc_html($room_name) . '</td>
-                <td>' . esc_html($checkin) . '</td>
-                <td>' . esc_html($checkout) . '</td>
-                <td>' . esc_html($nights) . '</td>
-                <td>' . esc_html($currency . number_format($amount, 2)) . '</td>
-                <td>' . esc_html(ucfirst($status)) . '</td>
+                <td>' . esc_html($ahbn_b->ID) . '</td>
+                <td>' . esc_html($ahbn_b->post_title) . '</td>
+                <td>' . esc_html($ahbn_phone) . '</td>
+                <td>' . esc_html($ahbn_email) . '</td>
+                <td>' . esc_html($ahbn_address) . '</td>
+                <td>' . esc_html($ahbn_room_name) . '</td>
+                <td>' . esc_html($ahbn_checkin) . '</td>
+                <td>' . esc_html($ahbn_checkout) . '</td>
+                <td>' . esc_html($ahbn_nights) . '</td>
+                <td>' . esc_html($ahbn_currency . number_format($ahbn_amount, 2)) . '</td>
+                <td>' . esc_html(ucfirst($ahbn_status)) . '</td>
               </tr>';
     }
 } else {

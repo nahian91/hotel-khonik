@@ -5,15 +5,15 @@
 // =====================================
 
 // Get room ID
-$room_id = isset($_GET['room_id']) ? intval($_GET['room_id']) : 0;
-if (!$room_id) {
+$ahbn_room_id = isset($_GET['room_id']) ? intval($_GET['room_id']) : 0;
+if (!$ahbn_room_id) {
     echo "<div class='error'><p>Invalid Room ID.</p></div>";
     return;
 }
 
 // Load room post
-$room = get_post($room_id);
-if (!$room) {
+$ahbn_room = get_post($ahbn_room_id);
+if (!$ahbn_room) {
     echo "<div class='error'><p>Room not found!</p></div>";
     return;
 }
@@ -21,65 +21,80 @@ if (!$room) {
 // ----------------------------
 // Load Currency
 // ----------------------------
-$currency_code = get_option('ahbn_hotel_currency', 'USD');
-$symbols = [
+$ahbn_currency_code = get_option('ahbn_hotel_currency', 'USD');
+$ahbn_symbols = [
     'USD' => '$',
     'EUR' => '€',
     'GBP' => '£',
     'BDT' => '৳',
     'INR' => '₹',
 ];
-$currency_symbol = $symbols[$currency_code] ?? '$';
+$ahbn_currency_symbol = $ahbn_symbols[$ahbn_currency_code] ?? '$';
 
 // ----------------------------
 // Load Room Meta
 // ----------------------------
-$price = get_post_meta($room_id, 'ahbn_price', true);
-$size = get_post_meta($room_id, 'ahbn_size', true);
-$adults = get_post_meta($room_id, 'ahbn_adults', true);
-$children = get_post_meta($room_id, 'ahbn_children', true);
-$gallery = get_post_meta($room_id, 'ahbn_gallery', true);
-$features = get_post_meta($room_id, 'ahbn_features', true);
+$ahbn_price     = get_post_meta($ahbn_room_id, 'ahbn_price', true);
+$ahbn_size      = get_post_meta($ahbn_room_id, 'ahbn_size', true);
+$ahbn_adults    = get_post_meta($ahbn_room_id, 'ahbn_adults', true);
+$ahbn_children  = get_post_meta($ahbn_room_id, 'ahbn_children', true);
+$ahbn_gallery   = get_post_meta($ahbn_room_id, 'ahbn_gallery', true);
+$ahbn_features  = get_post_meta($ahbn_room_id, 'ahbn_features', true);
 
-if (!is_array($gallery)) $gallery = [];
-if (!is_array($features)) $features = [];
+if (!is_array($ahbn_gallery)) $ahbn_gallery = [];
+if (!is_array($ahbn_features)) $ahbn_features = [];
 
 // ----------------------------
 // Save Room (POST)
 // ----------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'])) {
+if ( isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 
-    if (wp_verify_nonce($_POST['ahbn_edit_room_nonce'], 'ahbn_edit_room')) {
+    if (
+        isset($_POST['ahbn_edit_room_nonce']) &&
+        wp_verify_nonce(
+            wp_unslash($_POST['ahbn_edit_room_nonce']),
+            'ahbn_edit_room'
+        )
+    ) {
 
-        // Update title + content
+        // Sanitize inputs (WITH PREFIX ✅)
+        $ahbn_room_title   = isset($_POST['room_title']) ? sanitize_text_field(wp_unslash($_POST['room_title'])) : '';
+        $ahbn_room_content = isset($_POST['room_content']) ? wp_kses_post(wp_unslash($_POST['room_content'])) : '';
+        $ahbn_price        = isset($_POST['price']) ? floatval($_POST['price']) : 0;
+        $ahbn_size         = isset($_POST['size']) ? sanitize_text_field(wp_unslash($_POST['size'])) : '';
+        $ahbn_adults       = isset($_POST['adults']) ? intval($_POST['adults']) : 0;
+        $ahbn_children     = isset($_POST['children']) ? intval($_POST['children']) : 0;
+
+        $ahbn_gallery  = ( isset($_POST['gallery']) && is_array($_POST['gallery']) )
+            ? array_map('intval', wp_unslash($_POST['gallery']))
+            : [];
+
+        $ahbn_features = ( isset($_POST['features']) && is_array($_POST['features']) )
+            ? array_map('sanitize_text_field', wp_unslash($_POST['features']))
+            : [];
+
+        // Update post
         wp_update_post([
-            'ID' => $room_id,
-            'post_title' => sanitize_text_field($_POST['room_title']),
-            'post_content' => wp_kses_post($_POST['room_content']),
+            'ID'           => $ahbn_room_id,
+            'post_title'   => $ahbn_room_title,
+            'post_content' => $ahbn_room_content,
         ]);
 
         // Update meta
-        update_post_meta($room_id, 'ahbn_price', floatval($_POST['price']));
-        update_post_meta($room_id, 'ahbn_size', sanitize_text_field($_POST['size']));
-        update_post_meta($room_id, 'ahbn_adults', intval($_POST['adults']));
-        update_post_meta($room_id, 'ahbn_children', intval($_POST['children']));
+        update_post_meta($ahbn_room_id, 'ahbn_price', $ahbn_price);
+        update_post_meta($ahbn_room_id, 'ahbn_size', $ahbn_size);
+        update_post_meta($ahbn_room_id, 'ahbn_adults', $ahbn_adults);
+        update_post_meta($ahbn_room_id, 'ahbn_children', $ahbn_children);
+        update_post_meta($ahbn_room_id, 'ahbn_gallery', $ahbn_gallery);
+        update_post_meta($ahbn_room_id, 'ahbn_features', $ahbn_features);
 
-        // Gallery
-        $gallery = isset($_POST['gallery']) ? array_map('intval', $_POST['gallery']) : [];
-        update_post_meta($room_id, 'ahbn_gallery', $gallery);
-
-        // Features
-        $features = isset($_POST['features']) ? array_map('sanitize_text_field', $_POST['features']) : [];
-        update_post_meta($room_id, 'ahbn_features', $features);
-
-        echo "<div class='updated'><p>Room updated successfully!</p></div>";
+        echo '<div class="updated"><p>Room updated successfully!</p></div>';
     }
 }
-
 ?>
 
 <div class="wrap">
-    <h1>Edit Room: <?php echo esc_html($room->post_title); ?></h1>
+    <h1>Edit Room: <?php echo esc_html($ahbn_room->post_title); ?></h1>
 
     <form method="post">
         <?php wp_nonce_field('ahbn_edit_room', 'ahbn_edit_room_nonce'); ?>
@@ -93,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                     <input type="text" 
                            name="room_title" 
                            class="regular-text" 
-                           value="<?php echo esc_attr($room->post_title); ?>">
+                           value="<?php echo esc_attr($ahbn_room->post_title); ?>">
                 </td>
             </tr>
 
@@ -103,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                 <td>
                     <?php
                     wp_editor(
-                        $room->post_content,
+                        $ahbn_room->post_content,
                         'room_content',
                         ['textarea_rows' => 6]
                     );
@@ -113,12 +128,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
 
             <!-- PRICE -->
             <tr>
-                <th>Price (<?php echo esc_html($currency_symbol); ?>)</th>
+                <th>Price (<?php echo esc_html($ahbn_currency_symbol); ?>)</th>
                 <td>
                     <input type="number" 
                            name="price" 
                            step="0.01"
-                           value="<?php echo esc_attr($price); ?>">
+                           value="<?php echo esc_attr($ahbn_price); ?>">
                 </td>
             </tr>
 
@@ -129,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                     <input type="text" 
                            name="size"
                            class="regular-text"
-                           value="<?php echo esc_attr($size); ?>">
+                           value="<?php echo esc_attr($ahbn_size); ?>">
                 </td>
             </tr>
 
@@ -139,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                 <td>
                     <input type="number" 
                            name="adults"
-                           value="<?php echo esc_attr($adults); ?>">
+                           value="<?php echo esc_attr($ahbn_adults); ?>">
                 </td>
             </tr>
 
@@ -149,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                 <td>
                     <input type="number" 
                            name="children"
-                           value="<?php echo esc_attr($children); ?>">
+                           value="<?php echo esc_attr($ahbn_children); ?>">
                 </td>
             </tr>
 
@@ -158,14 +173,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                 <th>Gallery</th>
                 <td>
                     <div id="ahbn-gallery-wrapper">
-                        <?php foreach ($gallery as $img_id): ?>
+                        <?php foreach ($ahbn_gallery as $ahbn_img_id): ?>
                             <div class="ahbn-thumb">
-                                <?php echo wp_get_attachment_image($img_id, 'thumbnail'); ?>
-                                <input type="hidden" name="gallery[]" value="<?php echo esc_attr($img_id); ?>">
+                                <?php echo wp_get_attachment_image($ahbn_img_id, 'thumbnail'); ?>
+                                <input type="hidden" name="gallery[]" value="<?php echo esc_attr($ahbn_img_id); ?>">
                             </div>
                         <?php endforeach; ?>
                     </div>
-
                     <a href="#" class="button" id="ahbn-add-gallery">Add Images</a>
                 </td>
             </tr>
@@ -175,15 +189,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
                 <th>Features</th>
                 <td>
                     <div id="ahbn-features-wrapper">
-                        <?php foreach ($features as $feature): ?>
+                        <?php foreach ($ahbn_features as $ahbn_feature): ?>
                             <p>
-                                <input type="text" name="features[]" value="<?php echo esc_attr($feature); ?>">
+                                <input type="text" name="features[]" value="<?php echo esc_attr($ahbn_feature); ?>">
                                 <a href="#" class="remove-feature">Remove</a>
                             </p>
                         <?php endforeach; ?>
                     </div>
-
-                    <a href="#" id="add-feature" class="button">Add Feature</a>
+                    <a href="#" id="ahbn-add-feature" class="button">Add Feature</a>
                 </td>
             </tr>
 
@@ -196,9 +209,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ahbn_edit_room_nonce'
     </form>
 </div>
 
-<!-- SIMPLE JS -->
 <script>
-document.getElementById('add-feature').addEventListener('click', function(e){
+document.getElementById('ahbn-add-feature').addEventListener('click', function(e){
     e.preventDefault();
     let wrap = document.getElementById('ahbn-features-wrapper');
     wrap.insertAdjacentHTML('beforeend',

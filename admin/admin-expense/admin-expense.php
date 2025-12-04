@@ -4,6 +4,7 @@
 // ----------------------------
 function ahbn_expenses_tab() {
 
+    // Get current sub-tab
     $sub_tab = isset($_GET['sub_tab']) ? sanitize_text_field($_GET['sub_tab']) : 'add';
 
     // -----------------------------
@@ -15,9 +16,13 @@ function ahbn_expenses_tab() {
         'add'      => 'Add Expense',
         'all'      => 'All Expenses',
     ];
+
     foreach ($tabs as $key => $label) {
+        // Determine active tab
         $active = ($sub_tab === $key) ? 'nav-tab-active' : '';
-        echo '<a href="?page=ahbn_booking_main&tab=expenses&sub_tab=' . esc_attr($key) . '" class="nav-tab ' . $active . '">' . esc_html($label) . '</a>';
+        
+        // Properly escape all output
+        echo '<a href="?page=' . esc_attr('ahbn_booking_main') . '&tab=' . esc_attr('expenses') . '&sub_tab=' . esc_attr($key) . '" class="nav-tab ' . esc_attr($active) . '">' . esc_html($label) . '</a>';
     }
     echo '</h2>';
 
@@ -25,10 +30,19 @@ function ahbn_expenses_tab() {
     // Include the tab file only when needed
     // -----------------------------
     if ($sub_tab === 'settings') {
-        require plugin_dir_path(__FILE__) . 'tabs/expense-settings.php';
+        $file = plugin_dir_path(__FILE__) . 'tabs/expense-settings.php';
+        if (file_exists($file)) {
+            require $file;
+        }
     } elseif ($sub_tab === 'add') {
-        require plugin_dir_path(__FILE__) . 'tabs/expense-add.php';
+        $file = plugin_dir_path(__FILE__) . 'tabs/expense-add.php';
+        if (file_exists($file)) {
+            require $file;
+        }
     } elseif ($sub_tab === 'all') {
-        require plugin_dir_path(__FILE__) . 'tabs/expense-all.php';
+        $file = plugin_dir_path(__FILE__) . 'tabs/expense-all.php';
+        if (file_exists($file)) {
+            require $file;
+        }
     }
 }

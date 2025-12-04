@@ -51,7 +51,7 @@ add_shortcode('ahbn_rooms_list', function($atts){
             <!-- Room Image -->
             <div class="ahbn-rooms-grid-image">
                 <a href="<?php echo esc_url($view_link); ?>">
-                    <?php echo $img_html; ?>
+                    <?php echo esc_html($img_html); ?>
                 </a>
             </div>
 

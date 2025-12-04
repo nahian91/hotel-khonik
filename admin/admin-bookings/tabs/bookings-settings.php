@@ -15,26 +15,33 @@ if (isset($_POST['ahbn_save_booking_settings'])) {
     if (!check_admin_referer('ahbn_booking_settings_verify')) {
         ahbn_admin_notice('Security check failed. Settings not saved.', 'error');
     } else {
+        // Unsplash first, then sanitize
+        $ahbn_default_status      = isset($_POST['ahbn_default_status']) ? sanitize_text_field(wp_unslash($_POST['ahbn_default_status'])) : 'pending';
+        $ahbn_auto_approve        = isset($_POST['ahbn_auto_approve']) ? 1 : 0;
+        $ahbn_max_rooms           = isset($_POST['ahbn_max_rooms']) ? intval(wp_unslash($_POST['ahbn_max_rooms'])) : 1;
+        $ahbn_cutoff_hours        = isset($_POST['ahbn_cutoff_hours']) ? intval(wp_unslash($_POST['ahbn_cutoff_hours'])) : 24;
+        $ahbn_cancellation_policy = isset($_POST['ahbn_cancellation_policy']) ? sanitize_textarea_field(wp_unslash($_POST['ahbn_cancellation_policy'])) : '';
+
         // Save booking settings
-        update_option('ahbn_booking_default_status', sanitize_text_field($_POST['default_status'] ?? 'pending'));
-        update_option('ahbn_booking_auto_approve', isset($_POST['auto_approve']) ? 1 : 0);
-        update_option('ahbn_booking_max_rooms', intval($_POST['max_rooms'] ?? 1));
-        update_option('ahbn_booking_cutoff_hours', intval($_POST['cutoff_hours'] ?? 24));
-        update_option('ahbn_booking_cancellation_policy', sanitize_textarea_field($_POST['cancellation_policy'] ?? ''));
+        update_option('ahbn_booking_default_status', $ahbn_default_status);
+        update_option('ahbn_booking_auto_approve', $ahbn_auto_approve);
+        update_option('ahbn_booking_max_rooms', $ahbn_max_rooms);
+        update_option('ahbn_booking_cutoff_hours', $ahbn_cutoff_hours);
+        update_option('ahbn_booking_cancellation_policy', $ahbn_cancellation_policy);
 
         ahbn_admin_notice('Booking settings saved successfully!', 'success');
     }
 }
 
 // Load saved values
-$default_status         = get_option('ahbn_booking_default_status','pending');
-$auto_approve           = get_option('ahbn_booking_auto_approve',0);
-$max_rooms              = get_option('ahbn_booking_max_rooms',1);
-$cutoff_hours           = get_option('ahbn_booking_cutoff_hours',24);
-$cancellation_policy    = get_option('ahbn_booking_cancellation_policy','');
+$ahbn_default_status      = get_option('ahbn_booking_default_status','pending');
+$ahbn_auto_approve        = get_option('ahbn_booking_auto_approve',0);
+$ahbn_max_rooms           = get_option('ahbn_booking_max_rooms',1);
+$ahbn_cutoff_hours        = get_option('ahbn_booking_cutoff_hours',24);
+$ahbn_cancellation_policy = get_option('ahbn_booking_cancellation_policy','');
 
 // Booking statuses
-$booking_statuses = apply_filters('ahbn_booking_statuses', [
+$ahbn_booking_statuses = apply_filters('ahbn_booking_statuses', [
     'pending'   => 'Pending',
     'confirmed' => 'Confirmed',
     'canceled'  => 'Canceled',
@@ -50,12 +57,12 @@ $booking_statuses = apply_filters('ahbn_booking_statuses', [
             <tbody>
                 <!-- Default Booking Status -->
                 <tr>
-                    <th scope="row"><label for="default_status">Default Booking Status</label></th>
+                    <th scope="row"><label for="ahbn_default_status">Default Booking Status</label></th>
                     <td>
-                        <select id="default_status" name="default_status">
-                            <?php foreach ($booking_statuses as $key => $label) : ?>
-                                <option value="<?php echo esc_attr($key); ?>" <?php selected($default_status, $key); ?>>
-                                    <?php echo esc_html($label); ?>
+                        <select id="ahbn_default_status" name="ahbn_default_status">
+                            <?php foreach ($ahbn_booking_statuses as $ahbn_key => $ahbn_label) : ?>
+                                <option value="<?php echo esc_attr($ahbn_key); ?>" <?php selected($ahbn_default_status, $ahbn_key); ?>>
+                                    <?php echo esc_html($ahbn_label); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -68,7 +75,7 @@ $booking_statuses = apply_filters('ahbn_booking_statuses', [
                     <th scope="row">Auto Approve Bookings</th>
                     <td>
                         <label>
-                            <input type="checkbox" name="auto_approve" value="1" <?php checked($auto_approve,1); ?>>
+                            <input type="checkbox" name="ahbn_auto_approve" value="1" <?php checked($ahbn_auto_approve,1); ?>>
                             Automatically confirm bookings without admin approval.
                         </label>
                     </td>
@@ -76,27 +83,27 @@ $booking_statuses = apply_filters('ahbn_booking_statuses', [
 
                 <!-- Max Rooms per Booking -->
                 <tr>
-                    <th scope="row"><label for="max_rooms">Maximum Rooms per Booking</label></th>
+                    <th scope="row"><label for="ahbn_max_rooms">Maximum Rooms per Booking</label></th>
                     <td>
-                        <input type="number" name="max_rooms" id="max_rooms" value="<?php echo esc_attr($max_rooms); ?>" min="1">
+                        <input type="number" name="ahbn_max_rooms" id="ahbn_max_rooms" value="<?php echo esc_attr($ahbn_max_rooms); ?>" min="1">
                         <p class="description">Limit how many rooms a guest can book in one booking.</p>
                     </td>
                 </tr>
 
                 <!-- Booking Cutoff Time -->
                 <tr>
-                    <th scope="row"><label for="cutoff_hours">Booking Cutoff (hours before check-in)</label></th>
+                    <th scope="row"><label for="ahbn_cutoff_hours">Booking Cutoff (hours before check-in)</label></th>
                     <td>
-                        <input type="number" name="cutoff_hours" id="cutoff_hours" value="<?php echo esc_attr($cutoff_hours); ?>" min="1">
+                        <input type="number" name="ahbn_cutoff_hours" id="ahbn_cutoff_hours" value="<?php echo esc_attr($ahbn_cutoff_hours); ?>" min="1">
                         <p class="description">Bookings cannot be made within this many hours before check-in.</p>
                     </td>
                 </tr>
 
                 <!-- Cancellation Policy -->
                 <tr>
-                    <th scope="row"><label for="cancellation_policy">Cancellation Policy</label></th>
+                    <th scope="row"><label for="ahbn_cancellation_policy">Cancellation Policy</label></th>
                     <td>
-                        <textarea name="cancellation_policy" id="cancellation_policy" rows="5" class="large-text"><?php echo esc_textarea($cancellation_policy); ?></textarea>
+                        <textarea name="ahbn_cancellation_policy" id="ahbn_cancellation_policy" rows="5" class="large-text"><?php echo esc_textarea($ahbn_cancellation_policy); ?></textarea>
                         <p class="description">Set your default cancellation policy. It will appear in booking confirmation emails.</p>
                     </td>
                 </tr>

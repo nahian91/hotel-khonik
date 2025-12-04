@@ -5,24 +5,34 @@
 if (!defined('ABSPATH')) exit;
 
 // Delete expense
-if (isset($_GET['delete_expense'])) {
-    $eid = intval($_GET['delete_expense']);
-    if ($eid) {
-        wp_delete_post($eid, true);
+if (isset($_GET['ahbn_delete_expense'])) {
+    $ahbn_eid = intval($_GET['ahbn_delete_expense']);
+    if ($ahbn_eid) {
+        wp_delete_post($ahbn_eid, true);
         echo '<div class="notice notice-success"><p>Expense deleted successfully!</p></div>';
     }
 }
 
 // Fetch all expenses
-$expenses = get_posts([
+$ahbn_expenses = get_posts([
     'post_type'   => 'ahbn_expense',
     'numberposts' => -1,
     'orderby'     => 'ID',
     'order'       => 'DESC'
 ]);
 
-// Currency symbol
-$currency = get_option('ahbn_default_currency', '$');
+// Currency symbol mapping
+$ahbn_currency_symbols = [
+    'USD' => '$',
+    'EUR' => '€',
+    'GBP' => '£',
+    'BDT' => '৳',
+    'INR' => '₹',
+];
+
+// Get currency from General Settings
+$ahbn_currency_code = get_option('ahbn_hotel_currency', 'USD');
+$ahbn_currency      = $ahbn_currency_symbols[$ahbn_currency_code] ?? '$';
 ?>
 
 <div class="wrap">
@@ -40,23 +50,23 @@ $currency = get_option('ahbn_default_currency', '$');
             </tr>
         </thead>
         <tbody>
-            <?php if (!empty($expenses)) { 
-                foreach ($expenses as $e) { 
-                    $amount   = get_post_meta($e->ID, 'ahbn_amount', true);
-                    $category = get_post_meta($e->ID, 'ahbn_category', true);
-                    $assign   = get_post_meta($e->ID, 'ahbn_assign', true);
-                    $date     = get_post_meta($e->ID, 'ahbn_date', true);
+            <?php if (!empty($ahbn_expenses)) { 
+                foreach ($ahbn_expenses as $ahbn_e) { 
+                    $ahbn_amount   = floatval(get_post_meta($ahbn_e->ID, 'ahbn_amount', true));
+                    $ahbn_category = get_post_meta($ahbn_e->ID, 'ahbn_category', true) ?: '-';
+                    $ahbn_assign   = get_post_meta($ahbn_e->ID, 'ahbn_assign', true) ?: '-';
+                    $ahbn_date     = get_post_meta($ahbn_e->ID, 'ahbn_date', true) ?: '-';
                 ?>
                 <tr>
-                    <td><?php echo esc_html($e->ID); ?></td>
-                    <td><?php echo esc_html($e->post_title); ?></td>
-                    <td><?php echo esc_html($currency . number_format((float)$amount, 2)); ?></td>
-                    <td><?php echo esc_html($category); ?></td>
-                    <td><?php echo esc_html($assign); ?></td>
-                    <td><?php echo esc_html($date); ?></td>
+                    <td><?php echo esc_html($ahbn_e->ID); ?></td>
+                    <td><?php echo esc_html($ahbn_e->post_title); ?></td>
+                    <td><?php echo esc_html($ahbn_currency . number_format($ahbn_amount, 2)); ?></td>
+                    <td><?php echo esc_html($ahbn_category); ?></td>
+                    <td><?php echo esc_html($ahbn_assign); ?></td>
+                    <td><?php echo esc_html($ahbn_date); ?></td>
                     <td>
-                        <a href="?page=ahbn_booking_main&tab=expenses&sub_tab=add&edit_expense=<?php echo esc_attr($e->ID); ?>">Edit</a> | 
-                        <a href="?page=ahbn_booking_main&tab=expenses&sub_tab=all&delete_expense=<?php echo esc_attr($e->ID); ?>" onclick="return confirm('Are you sure you want to delete this expense?')">Delete</a>
+                        <a href="?page=ahbn_booking_main&tab=expenses&sub_tab=add&ahbn_edit_expense=<?php echo esc_attr($ahbn_e->ID); ?>">Edit</a> | 
+                        <a href="?page=ahbn_booking_main&tab=expenses&sub_tab=all&ahbn_delete_expense=<?php echo esc_attr($ahbn_e->ID); ?>" onclick="return confirm('Are you sure you want to delete this expense?')">Delete</a>
                     </td>
                 </tr>
             <?php } 

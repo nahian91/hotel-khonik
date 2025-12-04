@@ -31,6 +31,7 @@ add_action('plugins_loaded', function() {
     load_plugin_textdomain('awesome-hotel-booking', false, dirname(plugin_basename(__FILE__)) . '/languages');
 });
 
+
 // ----------------------------
 // Includes
 // ----------------------------
@@ -128,10 +129,16 @@ $pages = [
     ],
     [
         'title'   => 'My Account',
-        'content' => '[ahbn_my_account]',
+        'content' => '[ahbn_account_button]', // updated to match your shortcode
         'slug'    => 'my-account',
     ],
+    [
+        'title'   => 'Thanks Page',
+        'content' => '[ahbn_thanks_page]',
+        'slug'    => 'thanks-page',
+    ],
 ];
+
 
 
     foreach ($pages as $page) {

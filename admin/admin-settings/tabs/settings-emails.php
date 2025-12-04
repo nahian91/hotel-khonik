@@ -8,38 +8,43 @@ function ahbn_settings_emails() {
 
         // Security check
         if (!isset($_POST['ahbn_email_nonce']) || !wp_verify_nonce($_POST['ahbn_email_nonce'], 'ahbn_save_emails_action')) {
-            echo '<div class="notice notice-error"><p>Security check failed. Settings not saved.</p></div>';
+            echo '<div class="notice notice-error"><p>' . esc_html__('Security check failed. Settings not saved.', 'awesome-hotel-booking') . '</p></div>';
         } else {
 
             // Email types
             $email_types = ['confirmation', 'cancellation', 'reminder'];
 
             foreach ($email_types as $type) {
-                $enabled = isset($_POST["email_{$type}_enabled"]) ? 1 : 0;
+                $enabled  = isset($_POST["email_{$type}_enabled"]) ? 1 : 0;
+                $from     = sanitize_email($_POST["email_{$type}_from"] ?? '');
+                $subject  = sanitize_text_field($_POST["email_{$type}_subject"] ?? '');
+                $template = wp_kses_post($_POST["email_{$type}_template"] ?? '');
+
                 update_option("ahbn_email_{$type}_enabled", $enabled);
-                update_option("ahbn_email_{$type}_from", sanitize_email($_POST["email_{$type}_from"]));
-                update_option("ahbn_email_{$type}_subject", sanitize_text_field($_POST["email_{$type}_subject"]));
-                update_option("ahbn_email_{$type}_template", wp_kses_post($_POST["email_{$type}_template"]));
+                update_option("ahbn_email_{$type}_from", $from);
+                update_option("ahbn_email_{$type}_subject", $subject);
+                update_option("ahbn_email_{$type}_template", $template);
             }
 
-            echo '<div class="notice notice-success"><p>Email settings saved successfully!</p></div>';
+            echo '<div class="notice notice-success"><p>' . esc_html__('Email settings saved successfully!', 'awesome-hotel-booking') . '</p></div>';
         }
     }
 
+    // Define email types and labels
     $email_types = [
-        'confirmation' => 'Booking Confirmation',
-        'cancellation' => 'Booking Cancellation',
-        'reminder'     => 'Booking Reminder'
+        'confirmation' => esc_html__('Booking Confirmation', 'awesome-hotel-booking'),
+        'cancellation' => esc_html__('Booking Cancellation', 'awesome-hotel-booking'),
+        'reminder'     => esc_html__('Booking Reminder', 'awesome-hotel-booking')
     ];
     ?>
 
-    <h2>Email Settings</h2>
+    <h2><?php esc_html_e('Email Settings', 'awesome-hotel-booking'); ?></h2>
     <form method="post">
         <?php wp_nonce_field('ahbn_save_emails_action', 'ahbn_email_nonce'); ?>
 
         <table class="form-table">
             <tr>
-                <th>Available Shortcodes</th>
+                <th><?php esc_html_e('Available Shortcodes', 'awesome-hotel-booking'); ?></th>
                 <td>
                     <code>{customer_name}</code>,
                     <code>{checkin}</code>,
@@ -56,38 +61,42 @@ function ahbn_settings_emails() {
 
             $enabled  = get_option("ahbn_email_{$type}_enabled", 1);
             $from     = get_option("ahbn_email_{$type}_from", 'noreply@hotel.com');
-            $subject  = get_option("ahbn_email_{$type}_subject", "{$label} Notification");
-            $template = get_option("ahbn_email_{$type}_template", "Hello {customer_name}, your booking {$label}.");
+
+            // translators: %s is the email type label (e.g., Booking Confirmation)
+            $subject  = get_option("ahbn_email_{$type}_subject", sprintf(esc_html__('%s Notification', 'awesome-hotel-booking'), $label));
+
+            // translators: %s is the email type label (e.g., Booking Confirmation)
+            $template = get_option("ahbn_email_{$type}_template", sprintf(esc_html__('Hello {customer_name}, your booking %s.', 'awesome-hotel-booking'), $label));
 
             ?>
-            <h3><?php echo esc_html($label); ?> Email</h3>
+            <h3><?php echo esc_html($label) . ' ' . esc_html__('Email', 'awesome-hotel-booking'); ?></h3>
             <table class="form-table">
                 <tr>
-                    <th>Enable Email?</th>
+                    <th><?php esc_html_e('Enable Email?', 'awesome-hotel-booking'); ?></th>
                     <td>
                         <label class="switch">
-                            <input type="checkbox" name="email_<?php echo $type; ?>_enabled" <?php checked(1, $enabled); ?> class="ahbn-email-toggle" data-target="<?php echo $type; ?>">
+                            <input type="checkbox" name="email_<?php echo esc_attr($type); ?>_enabled" <?php checked(1, $enabled); ?> class="ahbn-email-toggle" data-target="<?php echo esc_attr($type); ?>">
                             <span class="slider round"></span>
                         </label>
                     </td>
                 </tr>
 
                 <tr>
-                    <th>From Email</th>
-                    <td><input type="email" name="email_<?php echo $type; ?>_from" value="<?php echo esc_attr($from); ?>" class="regular-text email-field-<?php echo $type; ?>" <?php echo $enabled ? '' : 'disabled'; ?>></td>
+                    <th><?php esc_html_e('From Email', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="email" name="email_<?php echo esc_attr($type); ?>_from" value="<?php echo esc_attr($from); ?>" class="regular-text email-field-<?php echo esc_attr($type); ?>" <?php echo $enabled ? '' : 'disabled'; ?>></td>
                 </tr>
 
                 <tr>
-                    <th>Email Subject</th>
-                    <td><input type="text" name="email_<?php echo $type; ?>_subject" value="<?php echo esc_attr($subject); ?>" class="regular-text email-field-<?php echo $type; ?>" <?php echo $enabled ? '' : 'disabled'; ?>></td>
+                    <th><?php esc_html_e('Email Subject', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="text" name="email_<?php echo esc_attr($type); ?>_subject" value="<?php echo esc_attr($subject); ?>" class="regular-text email-field-<?php echo esc_attr($type); ?>" <?php echo $enabled ? '' : 'disabled'; ?>></td>
                 </tr>
 
                 <tr>
-                    <th>Email Template</th>
+                    <th><?php esc_html_e('Email Template', 'awesome-hotel-booking'); ?></th>
                     <td>
                         <?php
                         wp_editor(
-                            $template,
+                            wp_kses_post($template),
                             "email_{$type}_template",
                             [
                                 'textarea_name' => "email_{$type}_template",
@@ -96,7 +105,7 @@ function ahbn_settings_emails() {
                             ]
                         );
                         ?>
-                        <p class="description">Use available shortcodes to personalize the email.</p>
+                        <p class="description"><?php esc_html_e('Use available shortcodes to personalize the email.', 'awesome-hotel-booking'); ?></p>
                     </td>
                 </tr>
             </table>
@@ -104,7 +113,7 @@ function ahbn_settings_emails() {
         <?php endforeach; ?>
 
         <p class="submit">
-            <button type="submit" name="ahbn_save_emails" class="button button-primary">Save Email Settings</button>
+            <button type="submit" name="ahbn_save_emails" class="button button-primary"><?php esc_html_e('Save Email Settings', 'awesome-hotel-booking'); ?></button>
         </p>
     </form>
 
@@ -160,3 +169,4 @@ function ahbn_settings_emails() {
 
 <?php
 }
+?>

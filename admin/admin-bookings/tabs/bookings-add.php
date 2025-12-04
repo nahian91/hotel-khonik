@@ -5,229 +5,243 @@ $post_type = 'ahbn_booking';
 wp_enqueue_media(); // WordPress media uploader
 
 // -------------------- Load Currency --------------------
-$hotel_currency = get_option('ahbn_hotel_currency', 'USD');
-$currency_symbols = [
+$ahbn_hotel_currency = get_option('ahbn_hotel_currency', 'USD');
+$ahbn_currency_symbols = [
     'USD'=>'$', 'EUR'=>'€', 'GBP'=>'£', 'BDT'=>'৳', 'INR'=>'₹'
 ];
-$currency_symbol = isset($currency_symbols[$hotel_currency]) ? $currency_symbols[$hotel_currency] : '$';
+$ahbn_currency_symbol = isset($ahbn_currency_symbols[$ahbn_hotel_currency]) ? $ahbn_currency_symbols[$ahbn_hotel_currency] : '$';
 
 // -------------------- Handle Form Submission --------------------
 if (isset($_POST['ahbn_save_booking'])) {
     if (!check_admin_referer('ahbn_save_booking_verify')) {
-        echo '<div class="notice notice-error"><p>Security check failed. Booking not saved.</p></div>';
+        echo '<div class="notice notice-error"><p>' . esc_html__('Security check failed. Booking not saved.', 'awesome-hotel-booking') . '</p></div>';
     } else {
-        $booking_id = intval($_POST['booking_id']);
-        $data = [
-            'post_title'  => sanitize_text_field($_POST['customer_name']),
+
+        // Safely retrieve POST values
+        $ahbn_booking_id = isset($_POST['ahbn_booking_id']) ? intval($_POST['ahbn_booking_id']) : 0;
+        $ahbn_customer_name  = isset($_POST['ahbn_customer_name']) ? sanitize_text_field(wp_unslash($_POST['ahbn_customer_name'])) : '';
+        $ahbn_customer_email = isset($_POST['ahbn_customer_email']) ? sanitize_email(wp_unslash($_POST['ahbn_customer_email'])) : '';
+        $ahbn_customer_phone = isset($_POST['ahbn_customer_phone']) ? sanitize_text_field(wp_unslash($_POST['ahbn_customer_phone'])) : '';
+        $ahbn_customer_address = isset($_POST['ahbn_customer_address']) ? sanitize_textarea_field(wp_unslash($_POST['ahbn_customer_address'])) : '';
+        $ahbn_room_id        = isset($_POST['ahbn_room_id']) ? intval($_POST['ahbn_room_id']) : 0;
+        $ahbn_room_type      = isset($_POST['ahbn_room_type']) ? sanitize_text_field(wp_unslash($_POST['ahbn_room_type'])) : '';
+        $ahbn_check_in       = isset($_POST['ahbn_check_in']) ? sanitize_text_field(wp_unslash($_POST['ahbn_check_in'])) : '';
+        $ahbn_check_out      = isset($_POST['ahbn_check_out']) ? sanitize_text_field(wp_unslash($_POST['ahbn_check_out'])) : '';
+        $ahbn_status         = isset($_POST['ahbn_status']) ? sanitize_text_field(wp_unslash($_POST['ahbn_status'])) : '';
+        $ahbn_payment_method = isset($_POST['ahbn_payment_method']) ? sanitize_text_field(wp_unslash($_POST['ahbn_payment_method'])) : '';
+        $ahbn_transaction_phone = isset($_POST['ahbn_transaction_phone']) ? sanitize_text_field(wp_unslash($_POST['ahbn_transaction_phone'])) : '';
+        $ahbn_transaction_id    = isset($_POST['ahbn_transaction_id']) ? sanitize_text_field(wp_unslash($_POST['ahbn_transaction_id'])) : '';
+        $ahbn_bank_info         = isset($_POST['ahbn_bank_info']) ? sanitize_textarea_field(wp_unslash($_POST['ahbn_bank_info'])) : '';
+        $ahbn_days              = isset($_POST['ahbn_days']) ? intval($_POST['ahbn_days']) : 1;
+        $ahbn_amount            = isset($_POST['ahbn_amount']) ? floatval($_POST['ahbn_amount']) : 0;
+        $ahbn_guest_image_id    = isset($_POST['ahbn_guest_image_id']) ? intval($_POST['ahbn_guest_image_id']) : 0;
+        $ahbn_guest_nid_id      = isset($_POST['ahbn_guest_nid_id']) ? intval($_POST['ahbn_guest_nid_id']) : 0;
+
+        $ahbn_data = [
+            'post_title'  => $ahbn_customer_name,
             'post_type'   => $post_type,
             'post_status' => 'publish'
         ];
 
-        if ($booking_id > 0) {
-            wp_update_post(array_merge($data, ['ID' => $booking_id]));
+        if ($ahbn_booking_id > 0) {
+            wp_update_post(array_merge($ahbn_data, ['ID' => $ahbn_booking_id]));
         } else {
-            $booking_id = wp_insert_post($data);
+            $ahbn_booking_id = wp_insert_post($ahbn_data);
         }
 
         // Save meta
-        update_post_meta($booking_id, 'ahbn_customer_email', sanitize_email($_POST['customer_email']));
-        update_post_meta($booking_id, 'ahbn_customer_phone', sanitize_text_field($_POST['customer_phone']));
-        update_post_meta($booking_id, 'ahbn_customer_address', sanitize_textarea_field($_POST['customer_address']));
-        update_post_meta($booking_id, 'ahbn_room_id', intval($_POST['room_id']));
-        update_post_meta($booking_id, 'ahbn_room_type', sanitize_text_field($_POST['room_type']));
-        update_post_meta($booking_id, 'ahbn_check_in', sanitize_text_field($_POST['check_in']));
-        update_post_meta($booking_id, 'ahbn_check_out', sanitize_text_field($_POST['check_out']));
-        update_post_meta($booking_id, 'ahbn_status', sanitize_text_field($_POST['status']));
-        update_post_meta($booking_id, 'ahbn_payment_method', sanitize_text_field($_POST['payment_method']));
-        update_post_meta($booking_id, 'ahbn_transaction_phone', sanitize_text_field($_POST['transaction_phone'] ?? ''));
-        update_post_meta($booking_id, 'ahbn_transaction_id', sanitize_text_field($_POST['transaction_id'] ?? ''));
-        update_post_meta($booking_id, 'ahbn_bank_info', sanitize_text_field($_POST['bank_info'] ?? ''));
-        update_post_meta($booking_id, 'ahbn_days', intval($_POST['days']));
+        update_post_meta($ahbn_booking_id, 'ahbn_customer_email', $ahbn_customer_email);
+        update_post_meta($ahbn_booking_id, 'ahbn_customer_phone', $ahbn_customer_phone);
+        update_post_meta($ahbn_booking_id, 'ahbn_customer_address', $ahbn_customer_address);
+        update_post_meta($ahbn_booking_id, 'ahbn_room_id', $ahbn_room_id);
+        update_post_meta($ahbn_booking_id, 'ahbn_room_type', $ahbn_room_type);
+        update_post_meta($ahbn_booking_id, 'ahbn_check_in', $ahbn_check_in);
+        update_post_meta($ahbn_booking_id, 'ahbn_check_out', $ahbn_check_out);
+        update_post_meta($ahbn_booking_id, 'ahbn_status', $ahbn_status);
+        update_post_meta($ahbn_booking_id, 'ahbn_payment_method', $ahbn_payment_method);
+        update_post_meta($ahbn_booking_id, 'ahbn_transaction_phone', $ahbn_transaction_phone);
+        update_post_meta($ahbn_booking_id, 'ahbn_transaction_id', $ahbn_transaction_id);
+        update_post_meta($ahbn_booking_id, 'ahbn_bank_info', $ahbn_bank_info);
+        update_post_meta($ahbn_booking_id, 'ahbn_days', $ahbn_days);
+        update_post_meta($ahbn_booking_id, 'ahbn_amount', $ahbn_amount);
+        update_post_meta($ahbn_booking_id, 'ahbn_guest_image', $ahbn_guest_image_id);
+        update_post_meta($ahbn_booking_id, 'ahbn_guest_nid', $ahbn_guest_nid_id);
 
-        // Amount: store numeric value only
-        $amount_numeric = floatval($_POST['amount']);
-        update_post_meta($booking_id, 'ahbn_amount', $amount_numeric);
-
-        // Guest media
-        update_post_meta($booking_id, 'ahbn_guest_image', intval($_POST['guest_image_id']));
-        update_post_meta($booking_id, 'ahbn_guest_nid', intval($_POST['guest_nid_id']));
-
-        echo '<div class="notice notice-success"><p>Booking saved successfully!</p></div>';
+        echo '<div class="notice notice-success"><p>' . esc_html__('Booking saved successfully!', 'awesome-hotel-booking') . '</p></div>';
     }
 }
 
 // -------------------- Load Existing Booking --------------------
-$edit_booking = isset($_GET['edit_booking']) ? intval($_GET['edit_booking']) : 0;
+$ahbn_edit_booking = isset($_GET['edit_booking']) ? intval($_GET['edit_booking']) : 0;
 
-$customer_name = $customer_email = $customer_phone = $room_id = $room_type = $check_in = $check_out = $status = '';
-$payment_method = $guest_image_id = $guest_nid_id = '';
-$transaction_phone = $transaction_id = $bank_info = '';
-$days = $amount = '';
+$ahbn_customer_name = $ahbn_customer_email = $ahbn_customer_phone = $ahbn_room_id = $ahbn_room_type = $ahbn_check_in = $ahbn_check_out = $ahbn_status = '';
+$ahbn_payment_method = $ahbn_guest_image_id = $ahbn_guest_nid_id = '';
+$ahbn_transaction_phone = $ahbn_transaction_id = $ahbn_bank_info = '';
+$ahbn_days = $ahbn_amount = '';
 
-if ($edit_booking > 0) {
-    $b = get_post($edit_booking);
-    if ($b) {
-        $customer_name  = $b->post_title;
-        $customer_email = get_post_meta($edit_booking, 'ahbn_customer_email', true);
-        $customer_phone = get_post_meta($edit_booking, 'ahbn_customer_phone', true);
-        $room_id        = get_post_meta($edit_booking, 'ahbn_room_id', true);
-        $room_type      = get_post_meta($edit_booking, 'ahbn_room_type', true);
-        $check_in       = get_post_meta($edit_booking, 'ahbn_check_in', true);
-        $check_out      = get_post_meta($edit_booking, 'ahbn_check_out', true);
-        $status         = get_post_meta($edit_booking, 'ahbn_status', true);
-        $payment_method = get_post_meta($edit_booking, 'ahbn_payment_method', true);
-        $transaction_phone = get_post_meta($edit_booking, 'ahbn_transaction_phone', true);
-        $transaction_id    = get_post_meta($edit_booking, 'ahbn_transaction_id', true);
-        $bank_info         = get_post_meta($edit_booking, 'ahbn_bank_info', true);
-        $days             = get_post_meta($edit_booking, 'ahbn_days', true);
-        $amount           = get_post_meta($edit_booking, 'ahbn_amount', true);
-        $guest_image_id = get_post_meta($edit_booking, 'ahbn_guest_image', true);
-        $guest_nid_id   = get_post_meta($edit_booking, 'ahbn_guest_nid', true);
+if ($ahbn_edit_booking > 0) {
+    $ahbn_b = get_post($ahbn_edit_booking);
+    if ($ahbn_b) {
+        $ahbn_customer_name  = $ahbn_b->post_title;
+        $ahbn_customer_email = get_post_meta($ahbn_edit_booking, 'ahbn_customer_email', true);
+        $ahbn_customer_phone = get_post_meta($ahbn_edit_booking, 'ahbn_customer_phone', true);
+        $ahbn_room_id        = get_post_meta($ahbn_edit_booking, 'ahbn_room_id', true);
+        $ahbn_room_type      = get_post_meta($ahbn_edit_booking, 'ahbn_room_type', true);
+        $ahbn_check_in       = get_post_meta($ahbn_edit_booking, 'ahbn_check_in', true);
+        $ahbn_check_out      = get_post_meta($ahbn_edit_booking, 'ahbn_check_out', true);
+        $ahbn_status         = get_post_meta($ahbn_edit_booking, 'ahbn_status', true);
+        $ahbn_payment_method = get_post_meta($ahbn_edit_booking, 'ahbn_payment_method', true);
+        $ahbn_transaction_phone = get_post_meta($ahbn_edit_booking, 'ahbn_transaction_phone', true);
+        $ahbn_transaction_id    = get_post_meta($ahbn_edit_booking, 'ahbn_transaction_id', true);
+        $ahbn_bank_info         = get_post_meta($ahbn_edit_booking, 'ahbn_bank_info', true);
+        $ahbn_days             = get_post_meta($ahbn_edit_booking, 'ahbn_days', true);
+        $ahbn_amount           = get_post_meta($ahbn_edit_booking, 'ahbn_amount', true);
+        $ahbn_guest_image_id = get_post_meta($ahbn_edit_booking, 'ahbn_guest_image', true);
+        $ahbn_guest_nid_id   = get_post_meta($ahbn_edit_booking, 'ahbn_guest_nid', true);
     }
 } else {
-    $status = get_option('ahbn_booking_default_status', 'pending');
-    $check_in = date('Y-m-d');
-    $check_out = date('Y-m-d', strtotime('+1 day'));
+    $ahbn_status = get_option('ahbn_booking_default_status', 'pending');
+    $ahbn_check_in = gmdate('Y-m-d');
+    $ahbn_check_out = gmdate('Y-m-d', strtotime('+1 day'));
 }
 
 // -------------------- Load Rooms --------------------
-$rooms = get_posts(['post_type' => 'ahbn_room', 'numberposts' => -1]);
+$ahbn_rooms = get_posts(['post_type' => 'ahbn_room', 'numberposts' => -1]);
 ?>
 
+<!-- Booking Form HTML -->
 <div class="wrap">
-    <h1><?php echo $edit_booking ? 'Edit Booking' : 'Add Booking'; ?></h1>
-
+    <h1><?php echo $ahbn_edit_booking ? esc_html__('Edit Booking', 'awesome-hotel-booking') : esc_html__('Add Booking', 'awesome-hotel-booking'); ?></h1>
     <form method="post">
         <?php wp_nonce_field('ahbn_save_booking_verify'); ?>
-        <input type="hidden" name="booking_id" value="<?php echo esc_attr($edit_booking); ?>">
+        <input type="hidden" name="ahbn_booking_id" value="<?php echo esc_attr($ahbn_edit_booking); ?>">
 
         <table class="form-table">
             <tbody>
                 <!-- Customer Info -->
                 <tr>
-                    <th><label for="customer_name">Customer Name</label></th>
-                    <td><input type="text" name="customer_name" value="<?php echo esc_attr($customer_name); ?>" class="regular-text" required></td>
+                    <th><label for="ahbn_customer_name"><?php esc_html_e('Customer Name', 'awesome-hotel-booking'); ?></label></th>
+                    <td><input type="text" name="ahbn_customer_name" value="<?php echo esc_attr($ahbn_customer_name); ?>" class="regular-text" required></td>
                 </tr>
                 <tr>
-                    <th>Email</th>
-                    <td><input type="email" name="customer_email" value="<?php echo esc_attr($customer_email); ?>" class="regular-text"></td>
+                    <th><?php esc_html_e('Email', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="email" name="ahbn_customer_email" value="<?php echo esc_attr($ahbn_customer_email); ?>" class="regular-text"></td>
                 </tr>
                 <tr>
-                    <th>Phone</th>
-                    <td><input type="text" name="customer_phone" value="<?php echo esc_attr($customer_phone); ?>" class="regular-text"></td>
+                    <th><?php esc_html_e('Phone', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="text" name="ahbn_customer_phone" value="<?php echo esc_attr($ahbn_customer_phone); ?>" class="regular-text"></td>
                 </tr>
                 <tr>
-                    <th>Address</th>
-                    <td><textarea name="customer_address" class="large-text" rows="3"><?php echo esc_textarea(get_post_meta($edit_booking,'ahbn_customer_address',true)); ?></textarea></td>
+                    <th><?php esc_html_e('Address', 'awesome-hotel-booking'); ?></th>
+                    <td><textarea name="ahbn_customer_address" class="large-text" rows="3"><?php echo esc_textarea($ahbn_customer_address); ?></textarea></td>
                 </tr>
 
                 <!-- Room Selection -->
                 <tr>
-                    <th>Room</th>
+                    <th><?php esc_html_e('Room', 'awesome-hotel-booking'); ?></th>
                     <td>
-                        <select name="room_id" id="room_id">
-                            <option value="">Select Room</option>
-                            <?php foreach($rooms as $r):
-                                $room_number = get_post_meta($r->ID,'ahbn_room_number',true);
-                                $type   = get_post_meta($r->ID,'ahbn_room_type',true);
-                                $price  = get_post_meta($r->ID,'ahbn_price',true);
+                        <select name="ahbn_room_id" id="ahbn_room_id">
+                            <option value=""><?php esc_html_e('Select Room', 'awesome-hotel-booking'); ?></option>
+                            <?php foreach($ahbn_rooms as $ahbn_r):
+                                $ahbn_room_number = get_post_meta($ahbn_r->ID,'ahbn_room_number',true);
+                                $ahbn_type   = get_post_meta($ahbn_r->ID,'ahbn_room_type',true);
+                                $ahbn_price  = get_post_meta($ahbn_r->ID,'ahbn_price',true);
 
-                                $display = $r->post_title;
-                                if(!empty($room_number)){
-                                    if(is_array($room_number)){
-                                        $display .= ' - ' . implode(', ', $room_number);
+                                $ahbn_display = $ahbn_r->post_title;
+                                if(!empty($ahbn_room_number)){
+                                    if(is_array($ahbn_room_number)){
+                                        $ahbn_display .= ' - ' . implode(', ', $ahbn_room_number);
                                     } else {
-                                        $display .= ' - ' . $room_number;
+                                        $ahbn_display .= ' - ' . $ahbn_room_number;
                                     }
                                 }
-                                if(!empty($type)) $display .= ' (' . $type . ')';
-                                if(!empty($price)) $display .= ' - ' . $currency_symbol . number_format((float)$price,2);
+                                if(!empty($ahbn_type)) $ahbn_display .= ' (' . esc_html($ahbn_type) . ')';
+                                if(!empty($ahbn_price)) $ahbn_display .= ' - ' . esc_html($ahbn_currency_symbol) . esc_html(number_format((float)$ahbn_price,2));
                             ?>
-                                <option value="<?php echo $r->ID; ?>" 
-                                        data-type="<?php echo esc_attr($type); ?>" 
-                                        data-price="<?php echo esc_attr($price); ?>"
-                                        <?php selected($room_id,$r->ID); ?>>
-                                    <?php echo esc_html($display); ?>
+                                <option value="<?php echo esc_attr($ahbn_r->ID); ?>" 
+                                        data-type="<?php echo esc_attr($ahbn_type); ?>" 
+                                        data-price="<?php echo esc_attr($ahbn_price); ?>"
+                                        <?php selected($ahbn_room_id,$ahbn_r->ID); ?>>
+                                    <?php echo esc_html($ahbn_display); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <div id="room_price_display" style="margin-top:5px; font-weight:bold;">
+                        <div id="ahbn_room_price_display" style="margin-top:5px; font-weight:bold;">
                             <?php 
-                                if($room_id) {
-                                    $selected_price = get_post_meta($room_id,'ahbn_price',true);
-                                    echo "Price: ".$currency_symbol . esc_html(number_format((float)$selected_price,2));
+                                if($ahbn_room_id) {
+                                    $ahbn_selected_price = get_post_meta($ahbn_room_id,'ahbn_price',true);
+                                    echo esc_html__('Price: ', 'awesome-hotel-booking') . esc_html($ahbn_currency_symbol) . esc_html(number_format((float)$ahbn_selected_price,2));
                                 }
                             ?>
                         </div>
                     </td>
                 </tr>
-
                 <tr>
-                    <th>Room Type</th>
-                    <td><input type="text" name="room_type" id="room_type" value="<?php echo esc_attr($room_type); ?>" readonly></td>
+                    <th><?php esc_html_e('Room Type', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="text" name="ahbn_room_type" id="ahbn_room_type" value="<?php echo esc_attr($ahbn_room_type); ?>" readonly></td>
                 </tr>
 
                 <!-- Dates -->
                 <tr>
-                    <th>Check In</th>
-                    <td><input type="date" name="check_in" id="check_in" value="<?php echo esc_attr($check_in); ?>"></td>
+                    <th><?php esc_html_e('Check In', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="date" name="ahbn_check_in" id="ahbn_check_in" value="<?php echo esc_attr($ahbn_check_in); ?>"></td>
                 </tr>
                 <tr>
-                    <th>Check Out</th>
-                    <td><input type="date" name="check_out" id="check_out" value="<?php echo esc_attr($check_out); ?>"></td>
+                    <th><?php esc_html_e('Check Out', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="date" name="ahbn_check_out" id="ahbn_check_out" value="<?php echo esc_attr($ahbn_check_out); ?>"></td>
                 </tr>
 
                 <!-- Status -->
                 <tr>
-                    <th>Status</th>
+                    <th><?php esc_html_e('Status', 'awesome-hotel-booking'); ?></th>
                     <td>
-                        <select name="status">
-                            <option value="pending" <?php selected($status,'pending'); ?>>Pending</option>
-                            <option value="confirmed" <?php selected($status,'confirmed'); ?>>Confirmed</option>
-                            <option value="canceled" <?php selected($status,'canceled'); ?>>Canceled</option>
+                        <select name="ahbn_status">
+                            <option value="pending" <?php selected($ahbn_status,'pending'); ?>><?php esc_html_e('Pending', 'awesome-hotel-booking'); ?></option>
+                            <option value="confirmed" <?php selected($ahbn_status,'confirmed'); ?>><?php esc_html_e('Confirmed', 'awesome-hotel-booking'); ?></option>
+                            <option value="canceled" <?php selected($ahbn_status,'canceled'); ?>><?php esc_html_e('Canceled', 'awesome-hotel-booking'); ?></option>
                         </select>
                     </td>
                 </tr>
 
                 <!-- Days & Amount -->
                 <tr>
-                    <th>Days</th>
-                    <td><input type="number" name="days" id="days" value="<?php echo esc_attr($days); ?>" readonly></td>
+                    <th><?php esc_html_e('Days', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="number" name="ahbn_days" id="ahbn_days" value="<?php echo esc_attr($ahbn_days); ?>" readonly></td>
                 </tr>
                 <tr>
-                    <th>Amount</th>
-                    <td><input type="text" name="amount" id="amount" value="<?php echo esc_attr($amount); ?>" readonly></td>
+                    <th><?php esc_html_e('Amount', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="text" name="ahbn_amount" id="ahbn_amount" value="<?php echo esc_attr($ahbn_amount); ?>" readonly></td>
                 </tr>
 
                 <!-- Payment Method -->
                 <tr>
-                    <th>Payment Method</th>
+                    <th><?php esc_html_e('Payment Method', 'awesome-hotel-booking'); ?></th>
                     <td>
-                        <select name="payment_method" id="payment_method">
-                            <option value="">Select Method</option>
-                            <option value="cash" <?php selected($payment_method,'cash'); ?>>Cash</option>
-                            <option value="card" <?php selected($payment_method,'card'); ?>>Card</option>
-                            <option value="online" <?php selected($payment_method,'online'); ?>>Online</option>
-                            <option value="bkash" <?php selected($payment_method,'bkash'); ?>>Bkash</option>
-                            <option value="nagad" <?php selected($payment_method,'nagad'); ?>>Nagad</option>
-                            <option value="rocket" <?php selected($payment_method,'rocket'); ?>>Rocket</option>
-                            <option value="bank" <?php selected($payment_method,'bank'); ?>>Bank</option>
+                        <select name="ahbn_payment_method" id="ahbn_payment_method">
+                            <option value=""><?php esc_html_e('Select Method', 'awesome-hotel-booking'); ?></option>
+                            <option value="cash" <?php selected($ahbn_payment_method,'cash'); ?>><?php esc_html_e('Cash', 'awesome-hotel-booking'); ?></option>
+                            <option value="card" <?php selected($ahbn_payment_method,'card'); ?>><?php esc_html_e('Card', 'awesome-hotel-booking'); ?></option>
+                            <option value="online" <?php selected($ahbn_payment_method,'online'); ?>><?php esc_html_e('Online', 'awesome-hotel-booking'); ?></option>
+                            <option value="bkash" <?php selected($ahbn_payment_method,'bkash'); ?>><?php esc_html_e('Bkash', 'awesome-hotel-booking'); ?></option>
+                            <option value="nagad" <?php selected($ahbn_payment_method,'nagad'); ?>><?php esc_html_e('Nagad', 'awesome-hotel-booking'); ?></option>
+                            <option value="rocket" <?php selected($ahbn_payment_method,'rocket'); ?>><?php esc_html_e('Rocket', 'awesome-hotel-booking'); ?></option>
+                            <option value="bank" <?php selected($ahbn_payment_method,'bank'); ?>><?php esc_html_e('Bank', 'awesome-hotel-booking'); ?></option>
                         </select>
                     </td>
                 </tr>
 
                 <!-- Transaction / Bank Info -->
-                <tr class="payment-bkash-nagad-rocket">
-                    <th>Transaction Phone</th>
-                    <td><input type="text" name="transaction_phone" id="transaction_phone" value="<?php echo esc_attr($transaction_phone); ?>"></td>
+                <tr class="ahbn_payment_bkash_nagad_rocket">
+                    <th><?php esc_html_e('Transaction Phone', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="text" name="ahbn_transaction_phone" id="ahbn_transaction_phone" value="<?php echo esc_attr($ahbn_transaction_phone); ?>"></td>
                 </tr>
-                <tr class="payment-bkash-nagad-rocket">
-                    <th>Transaction ID</th>
-                    <td><input type="text" name="transaction_id" id="transaction_id" value="<?php echo esc_attr($transaction_id); ?>"></td>
+                <tr class="ahbn_payment_bkash_nagad_rocket">
+                    <th><?php esc_html_e('Transaction ID', 'awesome-hotel-booking'); ?></th>
+                    <td><input type="text" name="ahbn_transaction_id" id="ahbn_transaction_id" value="<?php echo esc_attr($ahbn_transaction_id); ?>"></td>
                 </tr>
-                <tr class="payment-bank">
-                    <th>Bank Information</th>
-                    <td><textarea name="bank_info" id="bank_info"><?php echo esc_textarea($bank_info); ?></textarea></td>
+                <tr class="ahbn_payment_bank">
+                    <th><?php esc_html_e('Bank Information', 'awesome-hotel-booking'); ?></th>
+                    <td><textarea name="ahbn_bank_info" id="ahbn_bank_info"><?php echo esc_textarea($ahbn_bank_info); ?></textarea></td>
                 </tr>
             </tbody>
         </table>
@@ -236,114 +250,74 @@ $rooms = get_posts(['post_type' => 'ahbn_room', 'numberposts' => -1]);
         <table class="form-table">
             <tbody>
                 <tr>
-                    <th>Guest Image</th>
+                    <th><?php esc_html_e('Guest Image', 'awesome-hotel-booking'); ?></th>
                     <td>
-                        <input type="hidden" name="guest_image_id" id="guest_image_id" value="<?php echo esc_attr($guest_image_id); ?>">
-                        <img id="guest_image_preview" src="<?php echo $guest_image_id ? wp_get_attachment_url($guest_image_id) : ''; ?>" style="max-width:150px; display:block; margin-bottom:5px;">
-                        <button class="button" id="guest_image_button">Select/Upload Image</button>
-                        <button class="button" id="guest_image_remove">Remove</button>
+                        <input type="hidden" name="ahbn_guest_image_id" id="ahbn_guest_image_id" value="<?php echo esc_attr($ahbn_guest_image_id); ?>">
+                        <img id="ahbn_guest_image_preview" src="<?php echo $ahbn_guest_image_id ? esc_url(wp_get_attachment_url($ahbn_guest_image_id)) : ''; ?>" style="max-width:150px;"><br>
+                        <button type="button" class="button" id="ahbn_guest_image_upload"><?php esc_html_e('Upload Image', 'awesome-hotel-booking'); ?></button>
+                        <button type="button" class="button" id="ahbn_guest_image_remove"><?php esc_html_e('Remove', 'awesome-hotel-booking'); ?></button>
                     </td>
                 </tr>
                 <tr>
-                    <th>Guest NID / Passport</th>
+                    <th><?php esc_html_e('Guest NID Image', 'awesome-hotel-booking'); ?></th>
                     <td>
-                        <input type="hidden" name="guest_nid_id" id="guest_nid_id" value="<?php echo esc_attr($guest_nid_id); ?>">
-                        <img id="guest_nid_preview" src="<?php echo $guest_nid_id ? wp_get_attachment_url($guest_nid_id) : ''; ?>" style="max-width:150px; display:block; margin-bottom:5px;">
-                        <button class="button" id="guest_nid_button">Select/Upload NID</button>
-                        <button class="button" id="guest_nid_remove">Remove</button>
+                        <input type="hidden" name="ahbn_guest_nid_id" id="ahbn_guest_nid_id" value="<?php echo esc_attr($ahbn_guest_nid_id); ?>">
+                        <img id="ahbn_guest_nid_preview" src="<?php echo $ahbn_guest_nid_id ? esc_url(wp_get_attachment_url($ahbn_guest_nid_id)) : ''; ?>" style="max-width:150px;"><br>
+                        <button type="button" class="button" id="ahbn_guest_nid_upload"><?php esc_html_e('Upload NID', 'awesome-hotel-booking'); ?></button>
+                        <button type="button" class="button" id="ahbn_guest_nid_remove"><?php esc_html_e('Remove', 'awesome-hotel-booking'); ?></button>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <p class="submit">
-            <input type="submit" class="button button-primary" name="ahbn_save_booking" value="Save Booking">
-        </p>
+        <?php submit_button($ahbn_edit_booking ? esc_html__('Update Booking', 'awesome-hotel-booking') : esc_html__('Save Booking', 'awesome-hotel-booking'), 'primary', 'ahbn_save_booking'); ?>
     </form>
 </div>
 
+<!-- JS for dynamic price and media upload -->
 <script>
 jQuery(document).ready(function($){
-    const currency = "<?php echo esc_js($currency_symbol); ?>";
+    function updateRoomDetails() {
+        var room = $('#ahbn_room_id option:selected');
+        $('#ahbn_room_type').val(room.data('type'));
+        var price = room.data('price') || 0;
+        var days = Math.ceil((new Date($('#ahbn_check_out').val()) - new Date($('#ahbn_check_in').val())) / (1000*60*60*24)) || 1;
+        $('#ahbn_days').val(days);
+        $('#ahbn_amount').val((price*days).toFixed(2));
+        $('#ahbn_room_price_display').text('Price: <?php echo esc_js($ahbn_currency_symbol); ?>' + price);
+    }
 
-    // ---------------- Guest Image ----------------
-    var guestImageFrame;
-    $('#guest_image_button').on('click', function(e){
-        e.preventDefault();
-        if(guestImageFrame) guestImageFrame.open();
-        guestImageFrame = wp.media({ title:'Select Guest Image', button:{text:'Use this image'}, multiple:false });
-        guestImageFrame.on('select', function(){
-            var attachment = guestImageFrame.state().get('selection').first().toJSON();
-            $('#guest_image_id').val(attachment.id);
-            $('#guest_image_preview').attr('src', attachment.url);
+    $('#ahbn_room_id, #ahbn_check_in, #ahbn_check_out').change(updateRoomDetails);
+    updateRoomDetails();
+
+    // Media upload buttons
+    function mediaUploader(button_id, input_id, preview_id){
+        var file_frame;
+        $(button_id).click(function(e){
+            e.preventDefault();
+            if(file_frame){ file_frame.open(); return; }
+            file_frame = wp.media.frames.file_frame = wp.media({
+                title: 'Select or Upload',
+                button: { text: 'Use this image' }, multiple: false
+            });
+            file_frame.on('select', function(){
+                var attachment = file_frame.state().get('selection').first().toJSON();
+                $(input_id).val(attachment.id);
+                $(preview_id).attr('src', attachment.url);
+            });
+            file_frame.open();
         });
-        guestImageFrame.open();
+    }
+    mediaUploader('#ahbn_guest_image_upload','#ahbn_guest_image_id','#ahbn_guest_image_preview');
+    mediaUploader('#ahbn_guest_nid_upload','#ahbn_guest_nid_id','#ahbn_guest_nid_preview');
+
+    $('#ahbn_guest_image_remove').click(function(){
+        $('#ahbn_guest_image_id').val('');
+        $('#ahbn_guest_image_preview').attr('src','');
     });
-    $('#guest_image_remove').on('click', function(e){ e.preventDefault(); $('#guest_image_id').val(''); $('#guest_image_preview').attr('src',''); });
-
-    // ---------------- Guest NID ----------------
-    var guestNidFrame;
-    $('#guest_nid_button').on('click', function(e){
-        e.preventDefault();
-        if(guestNidFrame) guestNidFrame.open();
-        guestNidFrame = wp.media({ title:'Select Guest NID', button:{text:'Use this file'}, multiple:false });
-        guestNidFrame.on('select', function(){
-            var attachment = guestNidFrame.state().get('selection').first().toJSON();
-            $('#guest_nid_id').val(attachment.id);
-            $('#guest_nid_preview').attr('src', attachment.url);
-        });
-        guestNidFrame.open();
+    $('#ahbn_guest_nid_remove').click(function(){
+        $('#ahbn_guest_nid_id').val('');
+        $('#ahbn_guest_nid_preview').attr('src','');
     });
-    $('#guest_nid_remove').on('click', function(e){ e.preventDefault(); $('#guest_nid_id').val(''); $('#guest_nid_preview').attr('src',''); });
-
-    // ---------------- Room & Amount ----------------
-    function updateRoomTypeAndAmount(){
-        const selected = $('#room_id option:selected');
-        const price = parseFloat(selected.data('price')) || 0;
-        $('#room_type').val(selected.data('type') || '');
-
-        let checkInDate = new Date($('#check_in').val());
-        let checkOutDate = new Date($('#check_out').val());
-
-        if(isNaN(checkInDate.getTime())) checkInDate = new Date();
-        if(isNaN(checkOutDate.getTime()) || checkOutDate <= checkInDate) 
-            checkOutDate = new Date(checkInDate.getTime() + 86400000);
-
-        let diffDays = Math.ceil((checkOutDate - checkInDate)/(1000*60*60*24));
-        if(diffDays < 1) diffDays = 1;
-
-        $('#days').val(diffDays);
-        $('#amount').val((price * diffDays).toFixed(2));
-        $('#room_price_display').text('Price: ' + currency + price.toFixed(2));
-    }
-    $('#room_id, #check_in, #check_out').on('change', updateRoomTypeAndAmount);
-
-    // ---------------- Payment Method ----------------
-    function updatePaymentFields(){
-        const method = $('#payment_method').val();
-        if(['bkash','nagad','rocket'].includes(method)){
-            $('.payment-bkash-nagad-rocket').show();
-            $('.payment-bank').hide();
-        } else if(method === 'bank'){
-            $('.payment-bkash-nagad-rocket').hide();
-            $('.payment-bank').show();
-        } else{
-            $('.payment-bkash-nagad-rocket, .payment-bank').hide();
-        }
-    }
-    $('#payment_method').on('change', updatePaymentFields);
-
-    // ---------------- Initial Setup ----------------
-    function initializeForm(){
-        updateRoomTypeAndAmount();
-        updatePaymentFields();
-        if(!$('#check_in').val()) $('#check_in').val(new Date().toISOString().split('T')[0]);
-        if(!$('#check_out').val()){
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            $('#check_out').val(tomorrow.toISOString().split('T')[0]);
-        }
-    }
-    initializeForm();
 });
 </script>
